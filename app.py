@@ -46,7 +46,7 @@ class Responses():
                 },
                 {
                     "status"    : "error",
-                    "message"   : "The data '{}' must be an string." .format(text),
+                    "message"   : "The data '{}' must be a string." .format(text),
                     "id"        : 5
                 },
                 {
@@ -82,7 +82,7 @@ class Responses():
                 },
                 {
                     "status"    : "error",
-                    "message"   : "There is no column 'programming-language' in body json.",
+                    "message"   : "There is no column 'language' in body json.",
                     "id"        : 1
                 },
                 {
@@ -92,8 +92,13 @@ class Responses():
                 },
                 {
                     "status"    : "error",
-                    "message"   : "Space is not allowed in parameters, please use '_' instead of ' '.",
+                    "message"   : "There is no column 'language' in body json.",
                     "id"        : 3
+                },
+                {
+                    "status"    : "error",
+                    "message"   : "There is no column 'initial' in body json.",
+                    "id"        : 4
                 }
             ]
         except IndexError:
@@ -108,18 +113,19 @@ class ProgrammingLanguage(Resource):
     def __init__(self):
         self.responses = Responses()
 
-    def get(self, name):
-        if ' ' in name:
-            response = self.responses.responses_without_text_parm(3)
-        else:
-            programmingLanguage = ProgrammingLanguages.query.filter_by(name=name.lower()).first()
+    def get(self):
+        data = request.json
+        if 'name' in data:
+            programmingLanguage = ProgrammingLanguages.query.filter_by(name=data['name'].lower()).first()
             try:
                 response = {
                     "id"    : programmingLanguage.id,
                     "name"  : programmingLanguage.name
                 }
             except AttributeError:
-                response = self.responses.responses_with_text_parm(0, name)
+                response = self.responses.responses_with_text_parm(0, data['name'])
+        else:
+            response = self.responses.responses_without_text_parm(0)
         return response
 
 class PutOrDeleteProgrammingLanguage(Resource):
@@ -127,14 +133,12 @@ class PutOrDeleteProgrammingLanguage(Resource):
         self.responses = Responses()
 
     @auth.login_required
-    def put(self, name):
-        if ' ' in name:
-            response = self.responses.responses_without_text_parm(3)
-        else:
-            programmingLanguage = ProgrammingLanguages.query.filter_by(name=name.lower()).first()
-            data = request.json
-            if programmingLanguage:
-                if 'name' in data:
+    def put(self):
+        data = request.json
+        if 'language' in data:
+            if 'name' in data:
+                programmingLanguage = ProgrammingLanguages.query.filter_by(name=data['language'].lower()).first()
+                if programmingLanguage:
                     programmingLanguage.name = data['name'].lower()
                     programmingLanguage.save()
                     response = {
@@ -142,21 +146,25 @@ class PutOrDeleteProgrammingLanguage(Resource):
                         "name"      : programmingLanguage.name
                     }
                 else:
-                    response = self.responses.responses_without_text_parm(0)
+                    response = self.responses.responses_with_text_parm(0, data['language'])
             else:
-                response = self.responses.responses_with_text_parm(0, name)
+                response = self.responses.responses_without_text_parm(0)
+        else:
+            response = self.responses.responses_without_text_parm(3)
         return response
 
-    def delete(self, name):
-        if ' ' in name:
-            response = self.responses.responses_without_text_parm(3)
-        else:
-            programmingLanguage = ProgrammingLanguages.query.filter_by(name=name.lower()).first()
+    @auth.login_required
+    def delete(self):
+        data = request.json
+        if 'name' in data:
+            programmingLanguage = ProgrammingLanguages.query.filter_by(name=data['name'].lower()).first()
             if programmingLanguage:
                 programmingLanguage.delete()
-                response = self.responses.responses_with_text_parm(1, name)
+                response = self.responses.responses_with_text_parm(1, data['name'])
             else:
-                response = self.responses.responses_with_text_parm(0, name)
+                response = self.responses.responses_with_text_parm(0, data['name'])
+        else:
+            response = self.responses.responses_without_text_parm(0)
         return response
 
 class GetProgrammingLanguages(Resource):
@@ -176,18 +184,22 @@ class GetProgrammingLanguageByInitialLetter(Resource):
     def __init__(self):
         self.responses = Responses()
 
-    def get(self, initial):
-        programmingLanguages = ProgrammingLanguages.query.filter(ProgrammingLanguages.name.like('{}%' .format(initial)))
+    def get(self):
+        data = request.json
+        if 'initial' in data:
+            programmingLanguages = ProgrammingLanguages.query.filter(ProgrammingLanguages.name.like('{}%' .format(data['initial'])))
 
-        response = [
-            {
-                "name": i.name
-            }
-            for i in programmingLanguages
-        ]
+            response = [
+                {
+                    "name": i.name
+                }
+                for i in programmingLanguages
+            ]
 
-        if len(response) == 0:
-            response = self.responses.responses_with_text_parm(7, initial)
+            if len(response) == 0:
+                response = self.responses.responses_with_text_parm(7, data['initial'])
+        else:
+            response = self.responses.responses_without_text_parm(4)
         return response
 
 class PostProgrammingLanguage(Resource):
@@ -198,19 +210,16 @@ class PostProgrammingLanguage(Resource):
     def post(self):
         data = request.json
         if 'name' in data:
-            if ' ' in data['name']:
-                response = self.responses.responses_without_text_parm(3)
+            programmingLanguage = ProgrammingLanguages.query.filter_by(name=data['name'].lower()).first()
+            if programmingLanguage:
+                response = self.responses.responses_with_text_parm(2, data['name'])
             else:
-                programmingLanguage = ProgrammingLanguages.query.filter_by(name=data['name'].lower()).first()
-                if programmingLanguage:
-                    response = self.responses.responses_with_text_parm(2, data['name'])
-                else:
-                    programmingLanguage = ProgrammingLanguages(name=data['name'].lower())
-                    programmingLanguage.save()
-                    response = {
-                        "id"    : programmingLanguage.id,
-                        "name"  : programmingLanguage.name 
-                    }
+                programmingLanguage = ProgrammingLanguages(name=data['name'].lower())
+                programmingLanguage.save()
+                response = {
+                    "id"    : programmingLanguage.id,
+                    "name"  : programmingLanguage.name 
+                }
         else:
             response = self.responses.responses_without_text_parm(0)
         return response
@@ -219,40 +228,45 @@ class GetRelated(Resource):
     def __init__(self):
         self.responses = Responses()
 
-    def get(self, name):
-        if ' ' in name:
-            response = self.responses.responses_without_text_parm(3)
-        else:
-            related = Related.query.filter_by(name=name.lower()).first()
+    def get(self):
+        data = request.json
+        if 'related' in data:
+            related = Related.query.filter_by(name=data['related'].lower()).first()
             if related:
                 programmingLanguage = ProgrammingLanguages.query.filter_by(id=related.programming_id).first()
                 if programmingLanguage:
                     response = {
                         "name"              : related.name,
-                        "programming-name"  : programmingLanguage.name
+                        "language"          : programmingLanguage.name
                     }
                 else:
                     response = self.responses.responses_with_text_parm(4, related.programming_id) 
             else:
-                response = self.responses.responses_with_text_parm(3, name)
+                response = self.responses.responses_with_text_parm(3, data['related'])
+        else:
+            response = self.responses.responses_without_text_parm(2)
         return response
 
 class GetRelatedWithInitialLetter(Resource):
     def __init__(self):
         self.responses = Responses()
     
-    def get(self, initial):
-        related = Related.query.filter(Related.name.like('{}%' .format(initial)))
+    def get(self):
+        data = request.json
+        if 'initial' in data:
+            related = Related.query.filter(Related.name.like('{}%' .format(data['initial'])))
 
-        response = [
-            {
-                "name"                  : i.name,
-                "programming-language"  : ProgrammingLanguages.query.filter_by(id=i.programming_id).first().name
-            }
-            for i in related
-        ]
-        if len(response) == 0:
-            response = self.responses.responses_with_text_parm(8, initial)
+            response = [
+                {
+                    "name"                  : i.name,
+                    "language"              : ProgrammingLanguages.query.filter_by(id=i.programming_id).first().name
+                }
+                for i in related
+            ]
+            if len(response) == 0:
+                response = self.responses.responses_with_text_parm(8, data['initial'])
+        else:
+            resposne = self.responses.responses_without_text_parm(4)
         return response
 
 
@@ -263,38 +277,32 @@ class PostRelated(Resource):
     @auth.login_required
     def post(self):
         data = request.json
-        if 'programming-language' in data:
-            if ' ' in data['programming-language']:
-                response = self.responses.responses_without_text_parm(3)
+        if 'language' in data:
+            if isinstance(data['language'], str):
+                programmingLanguage = ProgrammingLanguages.query.filter_by(name=data['language'].lower()).first()
+                if programmingLanguage:
+                    programmingLanguageId = programmingLanguage.id
+                else:
+                    response = self.responses.responses_with_text_parm(0, data['language'])
             else:
-                if isinstance(data['programming-language'], str):
-                    programmingLanguage = ProgrammingLanguages.query.filter_by(name=data['programming-language'].lower()).first()
-                    if programmingLanguage:
-                        programmingLanguageId = programmingLanguage.id
-                    else:
-                        response = self.responses.responses_with_text_parm(0, data['programming-language'])
-                else:
-                    response = self.responses.responses_with_text_parm(5, data['programming-language'])
+                response = self.responses.responses_with_text_parm(5, data['language'])
 
-                if 'related' in data:
-                    if ' ' in data['related']:
-                        response = self.responses.responses_without_text_parm(3)
-                    else:
-                        if Related.query.filter_by(name=data['related'].lower()).first():
-                            response = self.responses.responses_with_text_parm(6, data['related'])
-                        else:
-                            if isinstance(data['related'], str):
-                                related = Related(name=data['related'].lower(), programming_id=programmingLanguageId)
-                                related.save()
-                                response = {
-                                    "id"                    : related.id,
-                                    "name"                  : related.name,
-                                    "programming-language"  : ProgrammingLanguages.query.filter_by(id=related.programming_id).first().name
-                                }
-                            else:
-                                response = self.responses.responses_with_text_parm(5, data['related'])
+            if 'related' in data:
+                if Related.query.filter_by(name=data['related'].lower()).first():
+                    response = self.responses.responses_with_text_parm(6, data['related'])
                 else:
-                    response = self.responses.responses_without_text_parm(2)
+                    if isinstance(data['related'], str):
+                        related = Related(name=data['related'].lower(), programming_id=programmingLanguageId)
+                        related.save()
+                        response = {
+                            "id"                    : related.id,
+                            "name"                  : related.name,
+                            "language"              : ProgrammingLanguages.query.filter_by(id=related.programming_id).first().name
+                        }
+                    else:
+                        response = self.responses.responses_with_text_parm(5, data['related'])
+            else:
+                response = self.responses.responses_without_text_parm(2)
         else:
             response = self.responses.responses_without_text_parm(1)
         return response
@@ -304,60 +312,45 @@ class PutOrDeleteRelated(Resource):
         self.responses = Responses()
 
     @auth.login_required
-    def put(self, name):
-        if ' ' in name:
-            response = self.responses.responses_without_text_parm(3)
-        else:
-            related = Related.query.filter_by(name=name).first()
+    def put(self):
+        data = request.json
+        if 'related' in data:
+            related = Related.query.filter_by(name=data['related']).first()
             if related:
-                data = request.json
-                
-                if 'related' in data:
-                    if 'programming-language' in data:
-                        if ' ' in data['related'] or ' ' in data['programming-language']:
-                            response = self.responses.responses_without_text_parm(3)
-                        else:
+                if isinstance(data['related'], str):
+                    if isinstance(data['name'], str):
 
-                            if isinstance(data['related'], str):
-                                if isinstance(data['programming-language'], str):
+                        related.name = data['name']
+                        programmingLanguageName = ProgrammingLanguages.query.filter_by(id=related.programming_id).first().name
+                        related.save()
+                        response = {
+                            "id"                    : related.id,
+                            "related"               : related.name,
+                            "language"              : programmingLanguageName
+                        }
 
-                                    related.name = data['related']
-                                    programmingLanguage = ProgrammingLanguages.query.filter_by(name=data['programming-language'].lower()).first()
-
-                                    if programmingLanguage:
-
-                                        related.programming_id = programmingLanguage.id
-                                        related.save()
-                                        response = {
-                                            "id"                    : related.id,
-                                            "name"                  : related.name,
-                                            "programming-language"  : programmingLanguage.name 
-                                        }
-
-                                    else:
-                                        response = self.responses.responses_with_text_parm(0, data['programming-language'])
-                                else:
-                                    response = self.responses.responses_with_text_parm(5, data['programming-language'])
-                            else:
-                                response = self.responses.responses_with_text_parm(5, data['related'])
                     else:
-                        response = self.responses.responses_with_text_parm(1)
+                        response = self.responses.responses_with_text_parm(5, data['programming-language'])
                 else:
-                    response = self.responses.responses_without_text_parm(2)
+                    response = self.responses.responses_with_text_parm(5, data['related'])
             else:
-                response = self.responses.responses_with_text_parm(3, name)
-            return response
-
-    def delete(self, name):
-        if ' ' in name:
-            response = self.responses.responses_without_text_parm(3)
+                response = self.responses.responses_with_text_parm(3, data['related'])
         else:
-            related = Related.query.filter_by(name=name).first()
+            response = self.responses.responses_without_text_parm(2)
+        return response
+
+    @auth.login_required
+    def delete(self):
+        data = request.json
+        if 'related' in data:
+            related = Related.query.filter_by(name=data['related']).first()
             if related:
                 related.delete()
-                response = self.responses.responses_with_text_parm(1, name)
+                response = self.responses.responses_with_text_parm(1, data['related'])
             else:
-                response = self.responses.responses_with_text_parm(3, name)
+                response = self.responses.responses_with_text_parm(3, data['related'])
+        else:
+            response = self.responses.responses_without_text_parm(2)
         return response
 
 class GetRelateds(Resource):
@@ -367,23 +360,21 @@ class GetRelateds(Resource):
             {
                 "id"                    : i.id,
                 "name"                  : i.name,
-                "programming-language"  : ProgrammingLanguages.query.filter_by(id=i.programming_id).first().name 
+                "language"  : ProgrammingLanguages.query.filter_by(id=i.programming_id).first().name 
             }
             for i in relateds
         ]
-        response.sort(key = lambda i: i['programming-language'])
+        response.sort(key = lambda i: i['language'])
         return response
 
 class GetRelatedByProgrammingLanguage(Resource):
     def __init__(self):
         self.responses = Responses()
 
-    def get(self, name):
-        if ' ' in name:
-            response = self.responses.responses_without_text_parm(3)
-        else:
-            programmingLanguage = ProgrammingLanguages.query.filter_by(name=name).first()
-
+    def get(self):
+        data = request.json
+        if 'language' in data:
+            programmingLanguage = ProgrammingLanguages.query.filter_by(name=data['language']).first()
             if programmingLanguage:
 
                 relateds = Related.query.filter_by(programming_id=programmingLanguage.id)
@@ -396,21 +387,23 @@ class GetRelatedByProgrammingLanguage(Resource):
                     for i in relateds
                 ]
             else:
-                response = self.responses.responses_with_text_parm(0, name)
+                response = self.responses.responses_with_text_parm(0, data['language'])
+        else:
+            response = self.responses.responses_without_text_parm(1)
         return response
 
-api.add_resource(ProgrammingLanguage,                   '/programmingLanguage/<string:name>')
-api.add_resource(GetProgrammingLanguages,               '/programmingLanguage/')
-api.add_resource(PutOrDeleteProgrammingLanguage,        '/modifyProgrammingLanguage/<string:name>')
+api.add_resource(ProgrammingLanguage,                   '/programmingLanguage/')
+api.add_resource(GetProgrammingLanguages,               '/programmingLanguages/')
+api.add_resource(PutOrDeleteProgrammingLanguage,        '/modifyProgrammingLanguage/')
 api.add_resource(PostProgrammingLanguage,               '/postProgrammingLanguage/')
-api.add_resource(GetProgrammingLanguageByInitialLetter, '/programmingLanguageByInitialLetter/<string:initial>')
+api.add_resource(GetProgrammingLanguageByInitialLetter, '/programmingLanguageByInitialLetter/')
 
-api.add_resource(GetRelated,                            '/relatedProgrammingLanguage/<string:name>')
+api.add_resource(GetRelated,                            '/relatedProgrammingLanguage/')
 api.add_resource(PostRelated,                           '/relatedProgrammingLanguage/')
-api.add_resource(PutOrDeleteRelated,                    '/modifyRelatedProgrammingLanguage/<string:name>')
-api.add_resource(GetRelateds,                           '/relatedProgrammingLanguage/')
-api.add_resource(GetRelatedWithInitialLetter,           '/getRelatedProgrammingLanguageByInitialLetter/<string:initial>')
-api.add_resource(GetRelatedByProgrammingLanguage,       '/getRelatedByProgrammingLanguage/<string:name>')
+api.add_resource(PutOrDeleteRelated,                    '/modifyRelatedProgrammingLanguage/')
+api.add_resource(GetRelateds,                           '/relatedProgrammingLanguages/')
+api.add_resource(GetRelatedWithInitialLetter,           '/getRelatedProgrammingLanguageByInitialLetter/')
+api.add_resource(GetRelatedByProgrammingLanguage,       '/getRelatedByProgrammingLanguage/')
 
 if __name__ == "__main__":
     app.run(debug=True)
