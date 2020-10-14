@@ -1,6 +1,6 @@
 # Programming Languages REST API
 
-![Build Status](https://img.shields.io/badge/Python-3.7.3-yellowgreen) ![Build Status](https://img.shields.io/badge/pip-20.2.3-orange) ![Build Status](https://img.shields.io/badge/flask-1.1.2-green) ![Build Status](https://img.shields.io/badge/flask--RESTful-0.3.8-blue) ![Build Status](https://img.shields.io/badge/flask--HTTPAuth-4.1.0-red) ![Build Status](https://img.shields.io/badge/SQLAlchemy-1.3.19-yellow) ![Build Status](https://img.shields.io/badge/build-success-success)
+![Python](https://img.shields.io/badge/Python-3.7.3-yellowgreen) ![PIP](https://img.shields.io/badge/pip-20.2.3-orange) ![Flask](https://img.shields.io/badge/flask-1.1.2-green) ![Flask-RESTful](https://img.shields.io/badge/flask--RESTful-0.3.8-blue) ![Flask-HTTPAuth](https://img.shields.io/badge/flask--HTTPAuth-4.1.0-red) ![SQL Alchemy](https://img.shields.io/badge/SQLAlchemy-1.3.19-yellow)
 
 A REST API made with Flask, Flask-RESTful, Flask-HTTPAuth and SQLAlchemy to get information about Programming Languages names and relateds names. <br/>
 A related name is a framework or something related to a programming language, like Flutter is to Dart and Laravel is to PHP.
@@ -16,7 +16,7 @@ pip install -r requirements.txt
 ## Database
 To create the database that will serve to keep the information you must run the following command:
 ```bash
-python models.py
+python .\models.py
 ```
 And you will have on your folder a file with name *programming-languages.db* with three tables, **programminglanguages**, **related** and **users**.
 You can use [SQLiteStudio](https://sqlitestudio.pl/) to a better view of the tables.
@@ -30,6 +30,12 @@ In the *utils.py* you will get a method called *insertUser*, use it to insert a 
 />
 
 If you not be authorized you will receive a response code *401: Unauthorized*
+
+## Run the Project 
+So you have created the tables and the authorization user, now to run and test the API you just need to run the following command:
+```bash
+python .\app.py
+```
 <hr>
 
 ## Requests
@@ -345,4 +351,32 @@ The *JSON* returned is ordered by the language names.
   "message": "Programming language 'spring mvc' has been deleted.",
   "id": 1
 }
+```
+<hr>
 
+## Responses
+There two kinds of responses, those with params and those without params. <br/>
+First, the responses with text params.
+| ID | Status    | Message                                                       |
+| -- |:---------:| -------------------------------------------------------------:|
+| 0  | error     | There is no programming language registered with name '{}'.   |
+| 1  | success   | Programming language '{}' has been deleted.                   |
+| 2  | error     | The programming language '{}' already exists.                 |
+| 3  | error     | There is no '{}' as related with any programming language.    |
+| 4  | error     | There is no programming language registered with id '{}'.     |
+| 5  | error     | The data '{}' must be a string.                               |
+| 6  | error     | The data related '{}' already exists.                         |
+| 7  | error     | There is no programming language with initial letter as '{}'. |
+| 8  | error     | There is no related with initial letter as '{}'.              |
+| 9  | success   | The related '{}' has been deleted                             |
+
+Now, the responses without text params.
+| ID | Status    | Message                                     |
+| -- |:---------:| -------------------------------------------:|
+| 0  | error     | There is no column 'name' in body json.     |
+| 1  | error     | There is no column 'language' in body json. |
+| 2  | error     | There is no column 'related' in body json.  |
+| 3  | error     | There is no column 'initial' in body json.  |
+
+## Notes
+Feel free to open a *Pull Request* and comment about the project itself.

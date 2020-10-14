@@ -63,6 +63,11 @@ class Responses():
                     "status"    : "error",
                     "message"   : "There is no related with initial letter as '{}'." .format(text),
                     "id"        : 8
+                },
+                {
+                    "status"    : "sucess",
+                    "message"   : "The related '{}' has been deleted." .format(text),
+                    "id"        : 9
                 }
             ]
             return responses[id]
@@ -92,13 +97,8 @@ class Responses():
                 },
                 {
                     "status"    : "error",
-                    "message"   : "There is no column 'language' in body json.",
-                    "id"        : 3
-                },
-                {
-                    "status"    : "error",
                     "message"   : "There is no column 'initial' in body json.",
-                    "id"        : 4
+                    "id"        : 3
                 }
             ]
         except IndexError:
@@ -150,7 +150,7 @@ class PutOrDeleteProgrammingLanguage(Resource):
             else:
                 response = self.responses.responses_without_text_parm(0)
         else:
-            response = self.responses.responses_without_text_parm(3)
+            response = self.responses.responses_without_text_parm(2)
         return response
 
     @auth.login_required
@@ -346,7 +346,7 @@ class PutOrDeleteRelated(Resource):
             related = Related.query.filter_by(name=data['related']).first()
             if related:
                 related.delete()
-                response = self.responses.responses_with_text_parm(1, data['related'])
+                response = self.responses.responses_with_text_parm(9, data['related'])
             else:
                 response = self.responses.responses_with_text_parm(3, data['related'])
         else:
