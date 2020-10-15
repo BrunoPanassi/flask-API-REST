@@ -10,6 +10,13 @@ The *models.py* is responsible for the modeling of tables and the creation of it
 The *utils.py* is used to manipulate data without the use of the API, just through functions. <br/>
 And the *app.py* it´s where is defined the requests and the authorization method using classes.
 
+## URL
+If you want to see the API without running locally, access the link bellow:
+```url
+https://api-programming-languages.herokuapp.com/
+```
+All the *Endpoints* it's described on the section **Endpoints**.  
+
 ## Requirements
 
 First of all, to a better usage, create a virtual environment and then install the requirements.
@@ -36,14 +43,15 @@ In the *utils.py* you will get a method called *insertUser*, use it to insert a 
 
 If you not be authorized you will receive a response code *401: Unauthorized*
 
-## Run the Project 
+## Run the Project
 So you have created the tables and the authorization user, now to run and test the API you just need to run the following command:
 ```bash
 python .\app.py
 ```
+When 
 <hr>
 
-## Requests
+## Endpoints
 #### Insert a new Programming Language
 
 | Method        | URL                        | Content-Type      | 
