@@ -5,6 +5,10 @@
 A REST API made with Flask, Flask-RESTful, Flask-HTTPAuth and SQLAlchemy to get information about Programming Languages names and relateds names. <br/>
 A related name is a framework or something related to a programming language, like Flutter is to Dart and Laravel is to PHP.
 
+## Why
+This project was made to provide all possible information about names of programming languages at all. <br>
+For latelly being useful in future projects that will need of this kind of information.
+
 ## Models, Utils and App
 The *models.py* is responsible for the modeling of tables and the creation of it. <br/>
 The *utils.py* is used to manipulate data without the use of the API, just through functions. <br/>
